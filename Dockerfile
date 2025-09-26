@@ -19,7 +19,7 @@ COPY . .
 # Créer un .env temporaire si absent
 RUN if [ ! -f .env ]; then cp .env.example .env; fi
 
-# Installer dépendances PHP et JS et build assets
+# Installer dépendances PHP et JS, build assets
 RUN composer install --no-dev --optimize-autoloader \
     && npm install \
     && npm run build
@@ -27,7 +27,7 @@ RUN composer install --no-dev --optimize-autoloader \
 # Générer la clé Laravel
 RUN php artisan key:generate --force
 
-# Créer SQLite et s'assurer que storage / bootstrap/cache sont présents et writable
+# Créer les dossiers nécessaires et le fichier SQLite
 RUN mkdir -p database \
     && touch database/database.sqlite \
     && mkdir -p storage/framework/cache/data \
@@ -36,4 +36,12 @@ RUN mkdir -p database \
     && chmod -R 775 storage bootstrap/cache
 
 # Mettre en cache config/route/view pour optimiser Laravel
-RUN php artisan co
+RUN php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache
+
+# Exposer le port utilisé par Laravel
+EXPOSE 10000
+
+# Commande de démarrage
+CMD ["php",]()
