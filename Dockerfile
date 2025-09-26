@@ -1,7 +1,7 @@
 # ---------- Base PHP ----------
 FROM php:8.2-cli
 
-# Installer dépendances système
+# Installer dépendances système + SQLite + Node.js + npm + git
 RUN apt-get update && apt-get install -y \
     unzip git curl libsqlite3-dev nodejs npm \
     && docker-php-ext-install pdo pdo_sqlite \
@@ -19,7 +19,10 @@ COPY . .
 # Créer un .env temporaire si absent
 RUN if [ ! -f .env ]; then cp .env.example .env; fi
 
-# Installer dépendances PHP et JS, build assets
+# S'assurer que le fichier SQLite existe
+RUN mkdir -p database && touch database/database.sqlite
+
+# Installer dépendances PHP et JS + build assets
 RUN composer install --no-dev --optimize-autoloader \
     && npm install \
     && npm run build
@@ -27,21 +30,20 @@ RUN composer install --no-dev --optimize-autoloader \
 # Générer la clé Laravel
 RUN php artisan key:generate --force
 
-# Créer les dossiers nécessaires et le fichier SQLite
-RUN mkdir -p database \
-    && touch database/database.sqlite \
-    && mkdir -p storage/framework/cache/data \
+# Créer les dossiers storage et bootstrap/cache avec permissions
+RUN mkdir -p storage/framework/cache/data \
     && mkdir -p storage/logs \
     && mkdir -p bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Mettre en cache config/route/view pour optimiser Laravel
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+# NOTE: On ne met pas en cache config/route/view ici pour éviter les erreurs de build
+# Ces commandes seront exécutées au démarrage
 
 # Exposer le port utilisé par Laravel
 EXPOSE 10000
 
 # Commande de démarrage
-CMD ["php",]()
+CMD php artisan config:clear \
+    && php artisan route:clear \
+    && php artisan view:clear \
+    && php artisan serve --host=0.0.0.0 --port=10000
