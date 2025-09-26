@@ -1,0 +1,24 @@
+# Ignorer node_modules (inutile car on fait npm install dans le conteneur)
+node_modules
+
+# Ignorer vendor (on fait composer install dans le conteneur)
+vendor
+
+# Ignorer logs & cache
+storage/*.key
+storage/*.log
+storage/framework/*
+storage/logs/*
+
+# Ignorer fichiers git
+.git
+.gitignore
+
+# Ignorer configs locales
+.env
+.env.local
+.env.*.local
+
+# Ignorer OS files
+.DS_Store
+Thumbs.db
