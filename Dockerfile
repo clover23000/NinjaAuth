@@ -27,16 +27,13 @@ RUN composer install --no-dev --optimize-autoloader \
 # Générer la clé Laravel
 RUN php artisan key:generate --force
 
-# S'assurer que le fichier SQLite existe
-RUN mkdir -p database && touch database/database.sqlite
+# Créer SQLite et s'assurer que storage / bootstrap/cache sont présents et writable
+RUN mkdir -p database \
+    && touch database/database.sqlite \
+    && mkdir -p storage/framework/cache/data \
+    && mkdir -p storage/logs \
+    && mkdir -p bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
 
-# Mettre en cache config/route/view pour optimiser
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
-
-# Exposer le port utilisé par Laravel
-EXPOSE 10000
-
-# Commande de démarrage
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=10000"]
+# Mettre en cache config/route/view pour optimiser Laravel
+RUN php artisan co
